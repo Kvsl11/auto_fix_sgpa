@@ -131,6 +131,8 @@ VERSAO = obter_versao_local()
 CONFIG_URL = "https://raw.githubusercontent.com/Kvsl11/auto_fix_sgpa/main/config.json"
 
 def monitorar_config():
+    global root, driver, executando
+
     while True:
         try:
             r = requests.get(
@@ -149,22 +151,46 @@ def monitorar_config():
 
             if not status:
 
+                mensagem = config.get(
+                    "message",
+                    "O sistema foi desativado pelo administrador."
+                )
+
+                def bloquear_sistema():
+
+                    global executando, driver
+
+                    executando = False
+
+                    try:
+                        if driver:
+                            driver.quit()
+                    except:
+                        pass
+
+                    messagebox.showerror(
+                        "Sistema Bloqueado",
+                        mensagem
+                    )
+
+                    try:
+                        root.destroy()
+                    except:
+                        pass
+
+                    os._exit(1)
+
                 log_mensagem("🔴 Sistema bloqueado remotamente.")
 
                 if root:
-                    root.after(
-                        0,
-                        lambda: messagebox.showerror(
-                            "Sistema Bloqueado",
-                            "O sistema foi desativado pelo administrador."
-                        )
-                    )
+                    root.after(0, bloquear_sistema)
 
-                time.sleep(3)
-                os._exit(1)
+                return
 
         except Exception as e:
-            print(f"Erro ao verificar config.json: {e}")
+            log_mensagem(
+                f"⚠️ Falha ao consultar config.json: {e}"
+            )
 
         time.sleep(15)
 
