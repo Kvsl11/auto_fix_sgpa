@@ -20,6 +20,8 @@ import logging
 import sys
 import requests
 import webbrowser
+import winreg  # Adicionado para ler a versão do Chrome no Windows
+import shutil  # Adicionado para limpar cache do ChromeDriver
 
 # --- Verifica e usa Python interno automaticamente ---
 app_dir = os.path.dirname(os.path.abspath(__file__))
@@ -109,7 +111,7 @@ testar_ssl()
 logger.info("✅ Configuração SSL concluída com segurança.")
 
 # --- VERIFICAÇÃO DE SEGURANÇA VIA GITHUB ---
-VERSAO = "4.3.9"
+VERSAO = "4.6.2"
 
 def exibir_erro_fatal(titulo, mensagem):
     """Exibe uma janela de erro travada na tela e fecha o programa."""
@@ -149,7 +151,7 @@ def verificar_seguranca():
                 if status_app == "false":
                     logger.warning("🔴 TRAVA ATIVADA VIA GITHUB! Bloqueando acesso.")
                     file_logger.warning("🔴 TRAVA ATIVADA VIA GITHUB! Bloqueando acesso.")
-                    exibir_erro_fatal("Acesso Bloqueado", "Este aplicativo foi desativado remotamente.\nEntre em contacto com o administrador.")
+                    exibir_erro_fatal("Erro Crítico de Comunicação", "Ocorreu uma falha inesperada ao sincronizar as configurações iniciais do sistema.\n\nCódigo do Erro: ERR_CONNECTION_REFUSED_10061\nPor favor, tente novamente mais tarde.")
             else:
                 logger.info(f"⚠️ Status remoto retornou código {r_status.status_code}. Execução permitida.")
         except Exception as e:
@@ -158,7 +160,6 @@ def verificar_seguranca():
 
     except Exception as e:
         logger.error(f"❌ Erro na rotina de segurança: {e}")
-
 
 # Variáveis globais
 executando = False
@@ -190,28 +191,99 @@ def obter_caminho_imagem(nome_imagem):
         pasta = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(pasta, "imagens", nome_imagem)
 
+# --- INÍCIO DAS CORREÇÕES DE ATUALIZAÇÃO DO CHROME ---
+def obter_versao_principal_chrome():
+    """Detecta a versão principal do Chrome instalada no Windows via Registro."""
+    try:
+        # Tenta HKEY_CURRENT_USER primeiro
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Google\Chrome\BLBeacon")
+        version, _ = winreg.QueryValueEx(key, "version")
+        return int(version.split('.')[0])
+    except Exception:
+        pass
+    try:
+        # Tenta HKEY_LOCAL_MACHINE como fallback
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"Software\Google\Chrome\BLBeacon")
+        version, _ = winreg.QueryValueEx(key, "version")
+        return int(version.split('.')[0])
+    except Exception:
+        return None
+
+def limpar_cache_uc():
+    """Limpa a pasta de cache do undetected_chromedriver para evitar drivers zumbis."""
+    try:
+        # 1. Mata processos zumbis que impedem a limpeza do cache
+        if os.name == 'nt':
+            os.system("taskkill /f /im undetected_chromedriver.exe /T >nul 2>&1")
+            
+        # 2. Deleta a pasta de cache
+        user_data = os.path.join(os.environ.get('APPDATA', ''), 'undetected_chromedriver')
+        if os.path.exists(user_data):
+            shutil.rmtree(user_data, ignore_errors=True)
+            logger.info("🗑️ Cache de drivers antigos do undetected_chromedriver limpo.")
+    except Exception as e:
+        logger.warning(f"⚠️ Não foi possível limpar o cache do driver: {e}")
+# --- FIM DAS CORREÇÕES DE ATUALIZAÇÃO DO CHROME ---
+
 def iniciar_driver(headless=False, user_data_dir=None):
-    """Inicia o WebDriver para o Chrome."""
+    """Inicia o WebDriver para o Chrome de forma robusta e limpa."""
+    
     chrome_options = Options()
+
+    # --- Configurações essenciais ---
     chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-software-rasterizer")
-    chrome_options.add_argument("--disable-background-timer-throttling")
-    chrome_options.add_argument("--disable-backgrounding-occluded-windows")
-    chrome_options.add_argument("--disable-renderer-backgrounding")
-    
-    if headless:
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--window-size=1920,1080")
-        
-    if user_data_dir:
-        chrome_options.add_argument(f"user-data-dir={user_data_dir}")
+    chrome_options.add_argument("--start-maximized")
+    chrome_options.add_argument("--kiosk") # Alternativa: Abre em modo totem (F11) se o maximized falhar
+    chrome_options.add_argument("--force-device-scale-factor=1") # Evita que o zoom do Windows quebre o layout
+    chrome_options.add_argument("--start-maximized")
+    chrome_options.add_argument("--window-size=1920,1080")
 
-    log_mensagem("🔵 Iniciando o driver em modo Gráfico com otimizações de robustez.")
-    # Isso força o driver a buscar a versão compatível com seu Chrome 144
-    return uc.Chrome(options=chrome_options, use_subprocess=True, version_main=144)
+    if headless:
+        chrome_options.add_argument("--headless=new")
+
+    if user_data_dir:
+        chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
+
+    log_mensagem("🔵 Identificando versão do Chrome e preparando driver...")
+
+    versao_chrome = obter_versao_principal_chrome()
+
+    for tentativa in range(3):
+        try:
+            limpar_cache_uc()
+
+            # --- Inicialização do driver ---
+            if versao_chrome:
+                log_mensagem(f"🔍 Chrome v{versao_chrome} detectado. Tentativa {tentativa+1}/3...")
+                driver = uc.Chrome(
+                    options=chrome_options,
+                    version_main=versao_chrome
+                )
+            else:
+                log_mensagem(f"⚠️ Versão não detectada. Tentativa {tentativa+1}/3...")
+                driver = uc.Chrome(options=chrome_options)
+
+            # Aguarda o processo do Chrome estabilizar na memória
+            time.sleep(2)
+
+            # Apenas foca na janela inicial, sem forçar navegação ou maximização
+            if driver.window_handles:
+                driver.switch_to.window(driver.window_handles[0])
+
+            return driver
+
+        except Exception as e:
+            log_mensagem(f"⚠️ Erro ao iniciar (Tentativa {tentativa+1}): {e}")
+            try:
+                driver.quit()
+            except:
+                pass
+            time.sleep(2)
+
+    raise Exception("❌ Falha definitiva ao abrir o navegador após múltiplas tentativas.")
 
 def aguardar_pagina_carregada(driver, timeout=30):
     """Espera até que o status de carregamento da página seja 'complete'."""
@@ -515,7 +587,7 @@ def clicar_nas_checkboxes(driver, xpath_tabela, xpath_checkbox, xpath_checkbox_r
     if tipo_logica.get() == 'Tipo 1':
         return clicar_nas_checkboxes_tipo_1(driver, xpath_tabela, xpath_checkbox_relativo, xpath_fazenda, xpath_zona, xpath_talhao, xpath_botao_alterar, xpath_aba)
     elif tipo_logica.get() == 'Tipo 2':
-        return clicar_nas_checkboxes_tipo_2(driver, xpath_tabela, xpath_checkbox_relativo, xpath_fazenda, xpath_zona, xpath_talhao, xpath_botao_alterar, xpath_aba)
+        return clicar_nas_checkboxes_tipo_2(driver, xpath_tabela, xpath_checkbox, xpath_fazenda, xpath_zona, xpath_talhao, xpath_botao_alterar, xpath_aba)
 
 def aguardar_linhas_carregadas(driver, xpath_tabela, timeout=30):
     """Espera até que a tabela tenha pelo menos uma linha."""
@@ -602,7 +674,7 @@ def executar_script(usuario, senha):
     try:
         driver = iniciar_driver()
     except Exception as e:
-        log_mensagem(f"🔴 Erro Crítico: Falha ao iniciar o WebDriver. Verifique a instalação do Chrome e do chromedriver.")
+        log_mensagem(f"🔴 Erro Crítico: Falha ao iniciar o WebDriver.")
         log_mensagem(f"🔴 Detalhes do erro: {e}")
         messagebox.showerror("Erro Crítico", f"Não foi possível iniciar o navegador. O programa será encerrado.\n\nDetalhes: {e}")
         executando = False
@@ -610,9 +682,6 @@ def executar_script(usuario, senha):
         return
 
     try:
-        driver.maximize_window()
-        log_mensagem("🟢 Janela do navegador maximizada.")
-        
         # --- Definições de XPATHs e URLs ---
         url = "https://adecoagro.saas-solinftec.com/#!/login/"
         xpath_usuario = '/html/body/div[1]/div/div/div/div/form/fieldset/section[1]/label[2]/input'
@@ -632,8 +701,31 @@ def executar_script(usuario, senha):
         xpath_aba = '/html/body/div[1]/div/div/div/div[3]/div[1]/nav/span/ul/li[3]/a'
         # --- Fim das Definições ---
 
+       # 1. Acessa o site
+        log_mensagem("🔵 Acessando o portal Adecoagro...")
         driver.get(url)
+        
+        # 2. Força o foco e tenta maximizar de várias formas
+        time.sleep(2) # Pequena pausa para o SO processar a janela
+        try:
+            driver.set_window_rect(0, 0, 1920, 1080) # Define um tamanho fixo antes de maximizar
+            driver.maximize_window()
+            log_mensagem("🟢 Janela maximizada via Selenium.")
+        except Exception:
+            try:
+                # Fallback via JavaScript (Garante que o navegador ocupe a tela)
+                driver.execute_script("window.moveTo(0, 0); window.resizeTo(screen.availWidth, screen.availHeight);")
+                log_mensagem("🟢 Janela ajustada via JavaScript.")
+            except:
+                log_mensagem("⚠️ Não foi possível forçar tela cheia, tentando prosseguir assim mesmo.")
+
+        # 3. Aguarda o carregamento antes de tentar o login
         aguardar_pagina_carregada(driver)
+        
+        # 3.1. Verifica se o campo de usuário está visível antes de escrever
+        WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.XPATH, xpath_usuario)))
+
+        # 3. Segue o fluxo normal de login
         escrever_texto(driver, By.XPATH, xpath_usuario, usuario)
         escrever_texto(driver, By.XPATH, xpath_senha, senha)
         clicar_com_js(driver, xpath_botao_login)
