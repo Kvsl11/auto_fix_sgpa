@@ -110,6 +110,7 @@ garantir_certificados_amazon()
 testar_ssl()
 logger.info("✅ Configuração SSL concluída com segurança.")
 
+<<<<<<< HEAD
 # --- VERIFICAÇÃO DE SEGURANÇA VIA GITHUB ---
 VERSAO = "4.6.2"
 
@@ -160,6 +161,30 @@ def verificar_seguranca():
 
     except Exception as e:
         logger.error(f"❌ Erro na rotina de segurança: {e}")
+=======
+def obter_versao_local():
+    try:
+        caminho_versao = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "version_local.txt"
+        )
+
+        if os.path.exists(caminho_versao):
+            with open(
+                caminho_versao,
+                "r",
+                encoding="utf-8"
+            ) as f:
+                return f.read().strip()
+
+    except Exception:
+        pass
+
+    return "0.0.0"
+
+
+VERSAO = obter_versao_local()
+>>>>>>> b8c1a5b92c7d514eca96179d2b1be171bbf5d871
 
 # Variáveis globais
 executando = False
@@ -852,11 +877,11 @@ def criar_interface():
 
     ctk.set_appearance_mode("light")
     ctk.set_default_color_theme("blue")
-    
+
     root = ctk.CTk()
     root.title(f"AUTO. FICHA - OPE v{VERSAO}")
     root.geometry("500x1000")
-    root.state('zoomed')
+    root.state("zoomed")
 
     main_frame = ctk.CTkFrame(root, fg_color=PALETTE_BG, corner_radius=10)
     main_frame.pack(pady=20, padx=20, fill="both", expand=True)
@@ -994,7 +1019,4 @@ def criar_interface():
 
 # --- Ponto de Entrada da Aplicação ---
 if __name__ == "__main__":
-    # 1. Verifica apenas a trava de segurança (status.txt = True/False)
-    verificar_seguranca()
-    # 2. Inicializa a interface
     criar_interface()
