@@ -5,7 +5,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 requests.packages.urllib3.disable_warnings()
 
 # --- Configurações principais ---
-REPO = "Kvsl11/Auto-Ficha-OPE"
+REPO = "Kvsl11/auto_fix_sgpa"
 URL_VERSION = f"https://raw.githubusercontent.com/{REPO}/main/version.txt"
 URL_SCRIPT = f"https://raw.githubusercontent.com/{REPO}/main/main.py"
 LOCAL_SCRIPT = "main.py"
