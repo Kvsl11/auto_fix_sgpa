@@ -112,17 +112,13 @@ logger.info("✅ Configuração SSL concluída com segurança.")
 
 def obter_versao_local():
     try:
-        caminho_versao = os.path.join(
+        arquivo = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "version_local.txt"
         )
 
-        if os.path.exists(caminho_versao):
-            with open(
-                caminho_versao,
-                "r",
-                encoding="utf-8"
-            ) as f:
+        if os.path.exists(arquivo):
+            with open(arquivo, "r", encoding="utf-8") as f:
                 return f.read().strip()
 
     except Exception:
@@ -130,8 +126,47 @@ def obter_versao_local():
 
     return "0.0.0"
 
-
 VERSAO = obter_versao_local()
+
+CONFIG_URL = "https://raw.githubusercontent.com/Kvsl11/auto_fix_sgpa/main/config.json"
+
+def monitorar_config():
+    while True:
+        try:
+            r = requests.get(
+                CONFIG_URL,
+                timeout=10,
+                verify=False,
+                headers={
+                    "Cache-Control": "no-cache",
+                    "Pragma": "no-cache"
+                }
+            )
+
+            config = r.json()
+
+            status = config.get("status", True)
+
+            if not status:
+
+                log_mensagem("🔴 Sistema bloqueado remotamente.")
+
+                if root:
+                    root.after(
+                        0,
+                        lambda: messagebox.showerror(
+                            "Sistema Bloqueado",
+                            "O sistema foi desativado pelo administrador."
+                        )
+                    )
+
+                time.sleep(3)
+                os._exit(1)
+
+        except Exception as e:
+            print(f"Erro ao verificar config.json: {e}")
+
+        time.sleep(15)
 
 # Variáveis globais
 executando = False
@@ -962,8 +997,13 @@ def criar_interface():
         root.destroy()
 
     root.protocol("WM_DELETE_WINDOW", fechar_janela)
-    root.mainloop()
 
+    threading.Thread(
+        target=monitorar_config,
+        daemon=True
+    ).start()
+
+    root.mainloop()
 # --- Ponto de Entrada da Aplicação ---
 if __name__ == "__main__":
     criar_interface()
