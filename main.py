@@ -112,24 +112,19 @@ logger.info("✅ Configuração SSL concluída com segurança.")
 
 def obter_versao_local():
     try:
-        caminho_versao = os.path.join(
+        arquivo = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "version_local.txt"
         )
 
-        if os.path.exists(caminho_versao):
-            with open(
-                caminho_versao,
-                "r",
-                encoding="utf-8"
-            ) as f:
+        if os.path.exists(arquivo):
+            with open(arquivo, "r", encoding="utf-8") as f:
                 return f.read().strip()
 
     except Exception:
         pass
 
     return "0.0.0"
-
 
 VERSAO = obter_versao_local()
 

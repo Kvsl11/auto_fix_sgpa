@@ -1,108 +1,273 @@
-import requests, os, ssl, subprocess, time
+import os
+import ssl
+import time
+import json
+import requests
+import subprocess
 
-# --- Ignora SSL corporativo (seguro em rede interna) ---
+# =====================================
+# SSL
+# =====================================
+
 ssl._create_default_https_context = ssl._create_unverified_context
 requests.packages.urllib3.disable_warnings()
 
-# --- Configurações principais ---
+# =====================================
+# CONFIG
+# =====================================
+
 REPO = "Kvsl11/auto_fix_sgpa"
-URL_VERSION = f"https://raw.githubusercontent.com/{REPO}/main/version.txt"
-URL_SCRIPT = f"https://raw.githubusercontent.com/{REPO}/main/main.py"
-LOCAL_SCRIPT = "main.py"
-LOCAL_VERSION_FILE = "version_local.txt"
+BASE_URL = f"https://raw.githubusercontent.com/{REPO}/main/"
+URL_CONFIG = BASE_URL + "config.json"
+URL_MAIN = BASE_URL + "main.py"
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+LOCAL_MAIN = os.path.join(APP_DIR, "main.py")
+LOCAL_VERSION = os.path.join(
+    APP_DIR,
+    "version_local.txt"
+)
+PYTHON_PATH = os.path.join(
+    APP_DIR,
+    "Python313",
+    "python.exe"
+)
 
-# Caminho do Python interno (sem console)
-PYTHONW_PATH = os.path.join(os.getcwd(), "Python313", "python.exe")
+# =====================================
+# FUNCOES
+# =====================================
 
-# --- Funções auxiliares ---
-def get_local_version():
-    if os.path.exists(LOCAL_VERSION_FILE):
-        with open(LOCAL_VERSION_FILE, "r", encoding="utf-8") as f:
-            return f.read().strip()
+def obter_config():
+    try:
+        headers = {
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache"
+        }
+        r = requests.get(
+            URL_CONFIG,
+            timeout=10,
+            verify=False,
+            headers=headers
+        )
+        r.raise_for_status()
+        return r.json()
+    except Exception as erro:
+        print(
+            f"❌ Erro ao ler config.json: {erro}"
+        )
+        return None
+
+
+def obter_versao_local():
+    if os.path.exists(LOCAL_VERSION):
+        try:
+            with open(
+                LOCAL_VERSION,
+                "r",
+                encoding="utf-8"
+            ) as f:
+                return f.read().strip()
+
+        except Exception:
+            pass
+
     return "0.0.0"
 
-def get_online_version():
-    try:
-        headers = {"Cache-Control": "no-cache", "Pragma": "no-cache"}
-        r = requests.get(URL_VERSION, timeout=10, verify=False, headers=headers)
-        if r.status_code == 200:
-            return r.text.strip()
-        print(f"⚠️ Erro HTTP ao buscar versão: {r.status_code}")
-    except Exception as e:
-        print("⚠️ Erro ao obter versão online:", e)
-    return None
 
-def atualizar_script():
-    """Baixa a nova versão do main.py diretamente e substitui a existente."""
+def salvar_versao_local(versao):
+
     try:
-        print("⬇️ Baixando nova versão do main.py...")
-        headers = {"Cache-Control": "no-cache", "Pragma": "no-cache"}
-        r = requests.get(URL_SCRIPT, timeout=20, verify=False, headers=headers)
+
+        with open(
+            LOCAL_VERSION,
+            "w",
+            encoding="utf-8"
+        ) as f:
+
+            f.write(str(versao))
+
+        print(
+            f"💾 Versão local salva: {versao}"
+        )
+
+    except Exception as erro:
+
+        print(
+            f"❌ Erro ao salvar versão local: {erro}"
+        )
+
+
+def atualizar_main():
+
+    try:
+
+        print(
+            "⬇️ Baixando main.py..."
+        )
+
+        headers = {
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache"
+        }
+
+        r = requests.get(
+            URL_MAIN,
+            timeout=30,
+            verify=False,
+            headers=headers
+        )
+
         r.raise_for_status()
-        conteudo = r.content
 
-        # Remove o main.py antigo (se existir)
-        if os.path.exists(LOCAL_SCRIPT):
-            os.remove(LOCAL_SCRIPT)
+        with open(
+            LOCAL_MAIN,
+            "wb"
+        ) as arquivo:
 
-        with open(LOCAL_SCRIPT, "wb") as f:
-            f.write(conteudo)
+            arquivo.write(r.content)
 
-        print("✅ main.py atualizado com sucesso.")
+        print(
+            "✅ main.py atualizado."
+        )
+
         return True
-    except Exception as e:
-        print("❌ Erro ao atualizar script:", e)
+
+    except Exception as erro:
+
+        print(
+            f"❌ Falha ao atualizar main.py: {erro}"
+        )
+
         return False
 
-def save_local_version(ver):
-    with open(LOCAL_VERSION_FILE, "w", encoding="utf-8") as f:
-        f.write(ver)
-    print(f"💾 Versão local atualizada para: {ver}")
 
 def iniciar_app():
-    """Executa o app principal com pythonw.exe sem console."""
-    print("🚀 Iniciando app principal...")
+
+    print(
+        "🚀 Iniciando sistema..."
+    )
+
     try:
-        if os.path.exists(PYTHONW_PATH):
+
+        if os.path.exists(PYTHON_PATH):
+
             subprocess.Popen(
-                [PYTHONW_PATH, LOCAL_SCRIPT],
+                [PYTHON_PATH, LOCAL_MAIN],
                 creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW
             )
+
         else:
-            subprocess.Popen(["python", LOCAL_SCRIPT])
-    except Exception as e:
-        print("❌ Erro ao iniciar o app:", e)
+
+            subprocess.Popen(
+                ["python", LOCAL_MAIN]
+            )
+
+    except Exception as erro:
+
+        print(
+            f"❌ Erro ao iniciar app: {erro}"
+        )
+
     finally:
+
         os._exit(0)
 
-# --- Execução principal ---
+# =====================================
+# EXECUCAO
+# =====================================
+
 def main():
-    print("🔍 Verificando atualizações...")
-    local_v = get_local_version()
-    online_v = get_online_version()
 
-    print(f"Versão local: {local_v}")
-    print(f"Versão online: {online_v}")
+    print(
+        "🔍 Consultando config.json..."
+    )
 
-    if not online_v:
-        print("⚠️ Falha ao obter versão online. Rodando versão local.")
+    config = obter_config()
+
+    if not config:
+
+        print(
+            "⚠️ Não foi possível obter config.json."
+        )
+
         iniciar_app()
         return
 
-    if online_v != local_v:
-        print(f"🟡 Nova versão detectada: {online_v}. Atualizando automaticamente...")
-        ok = atualizar_script()
-        if ok:
-            save_local_version(online_v)
-            print("♻️ Reiniciando com nova versão...")
+    versao_online = str(
+        config.get(
+            "version",
+            "0.0.0"
+        )
+    )
+
+    status = config.get(
+        "status",
+        True
+    )
+
+    mensagem = config.get(
+        "message",
+        ""
+    )
+
+    print(
+        f"Versão online: {versao_online}"
+    )
+
+    if not status:
+
+        print(
+            "🔴 Sistema bloqueado."
+        )
+
+        print(mensagem)
+
+        time.sleep(3)
+
+        return
+
+    versao_local = obter_versao_local()
+
+    print(
+        f"Versão local: {versao_local}"
+    )
+
+    # CRIA version_local.txt automaticamente
+    if not os.path.exists(LOCAL_VERSION):
+
+        print(
+            "📄 Criando version_local.txt..."
+        )
+
+        salvar_versao_local(
+            versao_online
+        )
+
+    if versao_online != versao_local:
+
+        print(
+            f"🟡 Atualização encontrada: {versao_online}"
+        )
+
+        if atualizar_main():
+
+            salvar_versao_local(
+                versao_online
+            )
+
+            print(
+                "✅ Atualização concluída."
+            )
+
             time.sleep(1)
-            iniciar_app()
-        else:
-            print("❌ Falha na atualização. Rodando versão atual.")
-            iniciar_app()
+
     else:
-        print(f"🟢 Você está usando a versão mais recente ({local_v}).")
-        iniciar_app()
+
+        print(
+            "🟢 Sistema já atualizado."
+        )
+
+    iniciar_app()
+
 
 if __name__ == "__main__":
     main()
