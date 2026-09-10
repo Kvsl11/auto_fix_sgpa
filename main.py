@@ -110,183 +110,28 @@ garantir_certificados_amazon()
 testar_ssl()
 logger.info("✅ Configuração SSL concluída com segurança.")
 
-# --- VERIFICAÇÃO DE SEGURANÇA VIA GITHUB ---
-VERSAO = "4.6.1"
-REPO = "Kvsl11/Auto-Ficha-OPE"
-
-def exibir_erro_fatal(titulo, mensagem):
-    """
-    Exibe uma janela de erro travada na tela e fecha o programa imediatamente.
-    """
+def obter_versao_local():
     try:
-        root_temp = tk.Tk()
-        root_temp.withdraw()
-        root_temp.attributes("-topmost", True)
+        caminho_versao = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "version_local.txt"
+        )
 
-        messagebox.showerror(titulo, mensagem)
+        if os.path.exists(caminho_versao):
+            with open(
+                caminho_versao,
+                "r",
+                encoding="utf-8"
+            ) as f:
+                return f.read().strip()
 
-        root_temp.destroy()
     except Exception:
         pass
 
-    os._exit(1)
+    return "0.0.0"
 
 
-def apagar_dados_locais():
-    """
-    Sobrescreve o conteúdo do arquivo principal e o exclui da máquina do usuário por segurança.
-    """
-    try:
-        caminho_script = os.path.abspath(__file__)
-
-        if os.path.exists(caminho_script):
-            # Sobrescreve o conteúdo sensível antes de remover o arquivo
-            with open(caminho_script, "w", encoding="utf-8") as arquivo:
-                arquivo.write(
-                    "# Bloqueio remoto ativado. Script limpo por seguranca."
-                )
-
-            os.remove(caminho_script)
-
-            logger.info(
-                "🔴 Script local apagado e limpo com sucesso devido ao bloqueio remoto."
-            )
-
-    except Exception as e:
-        logger.error(f"⚠️ Erro ao limpar dados locais: {e}")
-
-
-def restaurar_codigo_fonte():
-    """
-    Restaura o código original do main.py a partir do repositório
-    se o status voltar para true.
-    """
-    try:
-        caminho_script = os.path.abspath(__file__)
-        ts = int(time.time())
-
-        url_main = (
-            f"https://raw.githubusercontent.com/{REPO}/main/main.py?t={ts}"
-        )
-
-        headers = {
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            "Pragma": "no-cache"
-        }
-
-        resp = requests.get(
-            url_main,
-            timeout=10,
-            verify=False,
-            headers=headers
-        )
-
-        if resp.status_code == 200 and len(resp.text.strip()) > 0:
-            with open(caminho_script, "w", encoding="utf-8") as arquivo:
-                arquivo.write(resp.text)
-
-            logger.info(
-                "🟢 Código fonte principal restaurado com sucesso do GitHub."
-            )
-
-    except Exception as e:
-        logger.error(f"⚠️ Falha ao restaurar código fonte: {e}")
-
-
-def verificar_seguranca():
-    """
-    Verifica continuamente a trava de segurança (status.txt) no GitHub.
-
-    - Se 'false': executa a limpeza local e encerra a aplicação.
-    - Se 'true': mantém ou restaura o funcionamento normal.
-    """
-    try:
-        ts = int(time.time())
-
-        url_status = (
-            f"https://raw.githubusercontent.com/{REPO}/main/status.txt?t={ts}"
-        )
-
-        log_path = os.path.join(
-            os.path.dirname(__file__),
-            "autoupdate.log"
-        )
-
-        file_logger = logging.getLogger("autoupdate")
-
-        if not file_logger.handlers:
-            fh = logging.FileHandler(log_path)
-            fh.setFormatter(
-                logging.Formatter(
-                    "%(asctime)s - %(levelname)s - %(message)s"
-                )
-            )
-
-            file_logger.addHandler(fh)
-            file_logger.setLevel(logging.INFO)
-
-        headers = {
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            "Pragma": "no-cache"
-        }
-
-        r_status = requests.get(
-            url_status,
-            timeout=10,
-            verify=False,
-            headers=headers
-        )
-
-        if r_status.status_code == 200:
-            status_app = r_status.text.strip().lower()
-
-            if status_app == "false":
-                logger.warning(
-                    "🔴 TRAVA ATIVADA VIA GITHUB! Derrubando aplicação e apagando dados locais."
-                )
-
-                file_logger.warning(
-                    "🔴 TRAVA ATIVADA VIA GITHUB! Derrubando aplicação e apagando dados locais."
-                )
-
-                # Executa a limpeza local
-                apagar_dados_locais()
-
-                # Exibe erro fatal e encerra imediatamente
-                exibir_erro_fatal(
-                    "Erro Crítico de Comunicação",
-                    (
-                        "Ocorreu uma falha inesperada ao sincronizar "
-                        "as configurações iniciais do sistema.\n\n"
-                        "Código do Erro: ERR_CONNECTION_REFUSED_10061\n"
-                        "Por favor, tente novamente mais tarde."
-                    )
-                )
-
-            else:
-                # Se o status voltar para true
-                restaurar_codigo_fonte()
-
-        else:
-            logger.info(
-                f"⚠️ Status remoto retornou código "
-                f"{r_status.status_code}. Execução permitida."
-            )
-
-    except Exception as e:
-        logger.warning(
-            f"⚠️ Falha ao checar status.txt. "
-            f"Mantendo execução atual. Erro: {e}"
-        )
-
-def loop_monitoramento_seguranca():
-    """
-    Thread em segundo plano que verifica o status.txt
-    continuamente a cada 15 segundos.
-    """
-    while True:
-        verificar_seguranca()
-        time.sleep(15)
+VERSAO = obter_versao_local()
 
 # Variáveis globais
 executando = False
@@ -979,11 +824,11 @@ def criar_interface():
 
     ctk.set_appearance_mode("light")
     ctk.set_default_color_theme("blue")
-    
+
     root = ctk.CTk()
     root.title(f"AUTO. FICHA - OPE v{VERSAO}")
     root.geometry("500x1000")
-    root.state('zoomed')
+    root.state("zoomed")
 
     main_frame = ctk.CTkFrame(root, fg_color=PALETTE_BG, corner_radius=10)
     main_frame.pack(pady=20, padx=20, fill="both", expand=True)
@@ -1121,7 +966,4 @@ def criar_interface():
 
 # --- Ponto de Entrada da Aplicação ---
 if __name__ == "__main__":
-    # 1. Verifica apenas a trava de segurança (status.txt = True/False)
-    verificar_seguranca()
-    # 2. Inicializa a interface
     criar_interface()
