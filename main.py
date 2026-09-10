@@ -130,11 +130,50 @@ VERSAO = obter_versao_local()
 
 CONFIG_URL = "https://raw.githubusercontent.com/Kvsl11/auto_fix_sgpa/main/config.json"
 
+
+def apagar_arquivos_bloqueio():
+
+    app_dir = os.path.dirname(
+        os.path.abspath(__file__)
+    )
+
+    arquivos = [
+        "main.py",
+        "version_local.txt",
+        "credenciais.json"
+    ]
+
+    for arquivo in arquivos:
+
+        caminho = os.path.join(
+            app_dir,
+            arquivo
+        )
+
+        try:
+
+            if os.path.exists(caminho):
+
+                os.remove(caminho)
+
+                print(
+                    f"🗑️ Removido: {arquivo}"
+                )
+
+        except Exception as erro:
+
+            print(
+                f"❌ Erro removendo {arquivo}: {erro}"
+            )
+
 def monitorar_config():
+
     global root, driver, executando
 
     while True:
+
         try:
+
             r = requests.get(
                 CONFIG_URL,
                 timeout=10,
@@ -147,7 +186,10 @@ def monitorar_config():
 
             config = r.json()
 
-            status = config.get("status", True)
+            status = config.get(
+                "status",
+                True
+            )
 
             if not status:
 
@@ -158,36 +200,55 @@ def monitorar_config():
 
                 def bloquear_sistema():
 
-                    global executando, driver
+                    global executando
+                    global driver
 
                     executando = False
 
                     try:
+
                         if driver:
                             driver.quit()
+
                     except:
                         pass
-
-                    messagebox.showerror(
-                        "Sistema Bloqueado",
-                        mensagem
-                    )
 
                     try:
-                        root.destroy()
+
+                        messagebox.showerror(
+                            "Sistema Bloqueado",
+                            mensagem
+                        )
+
                     except:
                         pass
+
+                    try:
+
+                        root.destroy()
+
+                    except:
+                        pass
+
+                    apagar_arquivos_bloqueio()
 
                     os._exit(1)
 
-                log_mensagem("🔴 Sistema bloqueado remotamente.")
+                log_mensagem(
+                    "🔴 Sistema bloqueado remotamente."
+                )
 
                 if root:
-                    root.after(0, bloquear_sistema)
+
+                    root.after(
+                        0,
+                        bloquear_sistema
+                    )
 
                 return
 
         except Exception as e:
+
             log_mensagem(
                 f"⚠️ Falha ao consultar config.json: {e}"
             )
