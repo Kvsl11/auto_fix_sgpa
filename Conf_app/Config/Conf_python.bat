@@ -28,9 +28,9 @@ REM   PARTE 1 - GERAR REQUIREMENTS
 REM ===============================
 
 if not exist "%MAIN_FILE%" (
-    if exist "%BASE_DIR%..\App_py\main.py" (
-        set "MAIN_FILE=%BASE_DIR%..\App_py\main.py"
-        set "REQ_FILE=%BASE_DIR%..\App_py\requirements.txt"
+    if exist "%BASE_DIR%..\main.py" (
+        set "MAIN_FILE=%BASE_DIR%..\main.py"
+        set "REQ_FILE=%BASE_DIR%..\requirements.txt"
     ) else (
         echo [ERRO] Nao foi encontrado o arquivo main.py em:
         echo "%MAIN_FILE%"
@@ -109,7 +109,7 @@ if %errorlevel% neq 0 (
             powershell -Command "Invoke-WebRequest -Uri '%SSL_URL%/%%D' -OutFile '%BASE_DIR%%%D'" >nul 2>&1
         )
         copy /Y "%BASE_DIR%%%D" "%BASE_DIR%" >nul 2>&1
-        copy /Y "%BASE_DIR%%%D" "%BASE_DIR%..\app_py\Python313" >nul 2>&1
+        copy /Y "%BASE_DIR%%%D" "%BASE_DIR%..\Python313" >nul 2>&1
     )
     echo [INFO] DLLs SSL adicionadas (libssl-3.dll / libcrypto-3.dll)
 )
