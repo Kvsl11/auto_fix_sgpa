@@ -110,27 +110,7 @@ garantir_certificados_amazon()
 testar_ssl()
 logger.info("✅ Configuração SSL concluída com segurança.")
 
-<<<<<<< HEAD:Conf_app/App_py/main.py
-# --- VERIFICAÇÃO DE SEGURANÇA VIA GITHUB ---
-VERSAO = "4.6.2"
-
-def exibir_erro_fatal(titulo, mensagem):
-    """Exibe uma janela de erro travada na tela e fecha o programa."""
-    root_temp = tk.Tk()
-    root_temp.withdraw()
-    root_temp.attributes("-topmost", True) # Garante que a mensagem apareça em cima de tudo
-    messagebox.showerror(titulo, mensagem)
-    root_temp.destroy()
-    os._exit(1)
-
-def verificar_seguranca():
-    """
-    Verifica a trava de segurança (status.txt).
-    Bloqueia o app caso esteja desativado remotamente.
-    """
-=======
 def obter_versao_local():
->>>>>>> b8c1a5b92c7d514eca96179d2b1be171bbf5d871:Conf_app/main.py
     try:
         caminho_versao = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -145,35 +125,14 @@ def obter_versao_local():
             ) as f:
                 return f.read().strip()
 
-<<<<<<< HEAD:Conf_app/App_py/main.py
-        # 1. VERIFICAR A TRAVA DE SEGURANÇA (KILL SWITCH)
-        try:
-            headers = {"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache"}
-            r_status = requests.get(URL_STATUS, timeout=10, verify=False, headers=headers)
-            if r_status.status_code == 200:
-                status_app = r_status.text.strip().lower()
-                if status_app == "false":
-                    logger.warning("🔴 TRAVA ATIVADA VIA GITHUB! Bloqueando acesso.")
-                    file_logger.warning("🔴 TRAVA ATIVADA VIA GITHUB! Bloqueando acesso.")
-                    exibir_erro_fatal("Erro Crítico de Comunicação", "Ocorreu uma falha inesperada ao sincronizar as configurações iniciais do sistema.\n\nCódigo do Erro: ERR_CONNECTION_REFUSED_10061\nPor favor, tente novamente mais tarde.")
-            else:
-                logger.info(f"⚠️ Status remoto retornou código {r_status.status_code}. Execução permitida.")
-        except Exception as e:
-            logger.warning(f"⚠️ Falha ao checar status.txt (Internet/GitHub fora do ar). Ignorando trava. Erro: {e}")
-            file_logger.warning(f"⚠️ Falha ao checar status.txt (Internet/GitHub fora do ar). Ignorando trava. Erro: {e}")
-=======
     except Exception:
         pass
->>>>>>> b8c1a5b92c7d514eca96179d2b1be171bbf5d871:Conf_app/main.py
 
     return "0.0.0"
 
-<<<<<<< HEAD:Conf_app/App_py/main.py
-=======
 
 VERSAO = obter_versao_local()
 
->>>>>>> b8c1a5b92c7d514eca96179d2b1be171bbf5d871:Conf_app/main.py
 # Variáveis globais
 executando = False
 continuar_execucao = False
