@@ -12,9 +12,9 @@ REM === Caminho base ===
 set "BASE_DIR=%~dp0"
 
 REM === Caminhos principais ===
-set "MAIN_FILE=%BASE_DIR%..\app_py\main.py"
-set "REQ_FILE=%BASE_DIR%..\app_py\requirements.txt"
-set "PYTHON_PATH=%BASE_DIR%..\app_py\Python313\python.exe"
+set "MAIN_FILE=%BASE_DIR%..\main.py"
+set "REQ_FILE=%BASE_DIR%..\requirements.txt"
+set "PYTHON_PATH=%BASE_DIR%..\Python313\python.exe"
 set "LOG_FILE=%BASE_DIR%pip_repair_log.txt"
 set "SSL_URL=https://github.com/python/cpython/raw/main/PCbuild/amd64"
 
