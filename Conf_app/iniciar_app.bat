@@ -16,15 +16,15 @@ REM VERIFICACOES
 REM =====================================
 
 if not exist "%PYTHON_EXE%" (
-    powershell -Command ^
-    "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') > $null; [System.Windows.Forms.MessageBox]::Show('Python interno nao encontrado.','Erro')"
-    exit /b 1
+  powershell -Command ^
+  "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') > $null; [System.Windows.Forms.MessageBox]::Show('Python interno nao encontrado.','Erro')"
+  exit /b 1
 )
 
 if not exist "%UPDATER%" (
-    powershell -Command ^
-    "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') > $null; [System.Windows.Forms.MessageBox]::Show('updater.py nao encontrado.','Erro')"
-    exit /b 1
+  powershell -Command ^
+  "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') > $null; [System.Windows.Forms.MessageBox]::Show('updater.py nao encontrado.','Erro')"
+  exit /b 1
 )
 
 REM =====================================

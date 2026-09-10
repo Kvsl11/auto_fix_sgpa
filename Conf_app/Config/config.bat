@@ -29,13 +29,13 @@ REM VERIFICAR PYTHON
 REM =====================================
 
 if not exist "%PYTHON%" (
-    echo [ERRO] Python nao encontrado.
-    echo.
-    echo Caminho esperado:
-    echo %PYTHON%
-    echo.
-    pause
-    exit /b 1
+  echo [ERRO] Python nao encontrado.
+  echo.
+  echo Caminho esperado:
+  echo %PYTHON%
+  echo.
+  pause
+  exit /b 1
 )
 
 echo [OK] Python encontrado.
@@ -50,8 +50,8 @@ echo Verificando pip...
 "%PYTHON%" -m pip --version >nul 2>&1
 
 if errorlevel 1 (
-    echo Instalando pip...
-    "%PYTHON%" -m ensurepip --upgrade
+  echo Instalando pip...
+  "%PYTHON%" -m ensurepip --upgrade
 )
 
 echo.
@@ -61,10 +61,10 @@ echo.
 "%PYTHON%" -m pip install --upgrade pip setuptools wheel
 
 if errorlevel 1 (
-    echo.
-    echo [ERRO] Falha ao atualizar ferramentas.
-    pause
-    exit /b 1
+  echo.
+  echo [ERRO] Falha ao atualizar ferramentas.
+  pause
+  exit /b 1
 )
 
 REM =====================================
@@ -80,10 +80,10 @@ echo.
 "%PYTHON%" "%ROOT%\Config\gerar_requirements.py"
 
 if errorlevel 1 (
-    echo.
-    echo [ERRO] Falha ao gerar requirements.
-    pause
-    exit /b 1
+  echo.
+  echo [ERRO] Falha ao gerar requirements.
+  pause
+  exit /b 1
 )
 
 echo.
@@ -103,14 +103,14 @@ echo.
 "%PYTHON%" -m pip install -r "%REQ%" > "%LOG%" 2>&1
 
 if errorlevel 1 (
-    echo.
-    echo [ERRO] Falha na instalacao.
-    echo.
-    echo Consulte:
-    echo %LOG%
-    echo.
-    pause
-    exit /b 1
+  echo.
+  echo [ERRO] Falha na instalacao.
+  echo.
+  echo Consulte:
+  echo %LOG%
+  echo.
+  pause
+  exit /b 1
 )
 
 echo.

@@ -25,34 +25,20 @@ BASE_URL = f"https://raw.githubusercontent.com/{REPO}/main/"
 URL_CONFIG = BASE_URL + "config.json"
 URL_MAIN = BASE_URL + "main.py"
 
-APP_DIR = os.path.dirname(
-    os.path.abspath(__file__)
-)
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
-LOCAL_MAIN = os.path.join(
-    APP_DIR,
-    "main.py"
-)
+LOCAL_MAIN = os.path.join(APP_DIR, "main.py")
 
-LOCAL_VERSION = os.path.join(
-    APP_DIR,
-    "version_local.txt"
-)
+LOCAL_VERSION = os.path.join(APP_DIR, "version_local.txt")
 
-LOCAL_CREDENCIAIS = os.path.join(
-    APP_DIR,
-    "credenciais.json"
-)
+LOCAL_CREDENCIAIS = os.path.join(APP_DIR, "credenciais.json")
 
-PYTHON_PATH = os.path.join(
-    APP_DIR,
-    "Python313",
-    "python.exe"
-)
+PYTHON_PATH = os.path.join(APP_DIR, "Python313", "python.exe")
 
 # =====================================
 # FUNCOES
 # =====================================
+
 
 def mostrar_bloqueio(mensagem):
 
@@ -62,15 +48,9 @@ def mostrar_bloqueio(mensagem):
 
         root.withdraw()
 
-        root.attributes(
-            "-topmost",
-            True
-        )
+        root.attributes("-topmost", True)
 
-        messagebox.showerror(
-            "AUTO. FICHA - OPE",
-            mensagem
-        )
+        messagebox.showerror("AUTO. FICHA - OPE", mensagem)
 
         root.destroy()
 
@@ -80,11 +60,7 @@ def mostrar_bloqueio(mensagem):
 
 def apagar_arquivos_bloqueio():
 
-    arquivos = [
-        LOCAL_MAIN,
-        LOCAL_VERSION,
-        LOCAL_CREDENCIAIS
-    ]
+    arquivos = [LOCAL_MAIN, LOCAL_VERSION, LOCAL_CREDENCIAIS]
 
     for arquivo in arquivos:
 
@@ -94,15 +70,11 @@ def apagar_arquivos_bloqueio():
 
                 os.remove(arquivo)
 
-                print(
-                    f"🗑️ Removido: {os.path.basename(arquivo)}"
-                )
+                print(f"🗑️ Removido: {os.path.basename(arquivo)}")
 
         except Exception as erro:
 
-            print(
-                f"❌ Erro removendo {arquivo}: {erro}"
-            )
+            print(f"❌ Erro removendo {arquivo}: {erro}")
 
 
 def obter_config():
@@ -113,10 +85,7 @@ def obter_config():
             URL_CONFIG,
             timeout=10,
             verify=False,
-            headers={
-                "Cache-Control": "no-cache",
-                "Pragma": "no-cache"
-            }
+            headers={"Cache-Control": "no-cache", "Pragma": "no-cache"},
         )
 
         r.raise_for_status()
@@ -125,9 +94,7 @@ def obter_config():
 
     except Exception as erro:
 
-        print(
-            f"❌ Erro ao ler config.json: {erro}"
-        )
+        print(f"❌ Erro ao ler config.json: {erro}")
 
         return None
 
@@ -136,15 +103,9 @@ def obter_versao_local():
 
     try:
 
-        if os.path.exists(
-            LOCAL_VERSION
-        ):
+        if os.path.exists(LOCAL_VERSION):
 
-            with open(
-                LOCAL_VERSION,
-                "r",
-                encoding="utf-8"
-            ) as f:
+            with open(LOCAL_VERSION, "r", encoding="utf-8") as f:
 
                 return f.read().strip()
 
@@ -158,11 +119,7 @@ def salvar_versao_local(versao):
 
     try:
 
-        with open(
-            LOCAL_VERSION,
-            "w",
-            encoding="utf-8"
-        ) as f:
+        with open(LOCAL_VERSION, "w", encoding="utf-8") as f:
 
             f.write(str(versao))
 
@@ -174,83 +131,63 @@ def atualizar_main():
 
     try:
 
-        print(
-            "⬇️ Baixando main.py..."
-        )
+        print("⬇️ Baixando main.py...")
 
         r = requests.get(
             URL_MAIN,
             timeout=30,
             verify=False,
-            headers={
-                "Cache-Control": "no-cache",
-                "Pragma": "no-cache"
-            }
+            headers={"Cache-Control": "no-cache", "Pragma": "no-cache"},
         )
 
         r.raise_for_status()
 
-        with open(
-            LOCAL_MAIN,
-            "wb"
-        ) as arquivo:
+        with open(LOCAL_MAIN, "wb") as arquivo:
 
-            arquivo.write(
-                r.content
-            )
+            arquivo.write(r.content)
 
-        print(
-            "✅ main.py atualizado."
-        )
+        print("✅ main.py atualizado.")
 
         return True
 
     except Exception as erro:
 
-        print(
-            f"❌ Falha ao baixar main.py: {erro}"
-        )
+        print(f"❌ Falha ao baixar main.py: {erro}")
 
         return False
 
 
 def iniciar_app():
 
-    if not os.path.exists(
-        LOCAL_MAIN
-    ):
+    if not os.path.exists(LOCAL_MAIN):
         return
 
     try:
 
-        if os.path.exists(
-            PYTHON_PATH
-        ):
+        if os.path.exists(PYTHON_PATH):
 
             subprocess.Popen(
                 [PYTHON_PATH, LOCAL_MAIN],
-                creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW
+                creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW,
             )
 
         else:
 
-            subprocess.Popen(
-                ["python", LOCAL_MAIN]
-            )
+            subprocess.Popen(["python", LOCAL_MAIN])
 
     except Exception as erro:
 
-        print(
-            f"❌ Erro ao iniciar aplicação: {erro}"
-        )
+        print(f"❌ Erro ao iniciar aplicação: {erro}")
 
     finally:
 
         os._exit(0)
 
+
 # =====================================
 # EXECUCAO
 # =====================================
+
 
 def main():
 
@@ -258,72 +195,38 @@ def main():
 
     if not config:
 
-        if os.path.exists(
-            LOCAL_MAIN
-        ):
+        if os.path.exists(LOCAL_MAIN):
             iniciar_app()
 
         return
 
-    versao_online = str(
-        config.get(
-            "version",
-            "0.0.0"
-        )
-    )
+    versao_online = str(config.get("version", "0.0.0"))
 
-    status = config.get(
-        "status",
-        True
-    )
+    status = config.get("status", True)
 
-    mensagem = config.get(
-        "message",
-        ""
-    )
+    mensagem = config.get("message", "")
 
     if not status:
 
-        print(
-            "🔴 Sistema bloqueado."
-        )
+        print("🔴 Sistema bloqueado.")
 
         apagar_arquivos_bloqueio()
 
-        mostrar_bloqueio(
-            mensagem
-            or
-            "Sistema bloqueado pelo administrador."
-        )
+        mostrar_bloqueio(mensagem or "Sistema bloqueado pelo administrador.")
 
         return
 
     versao_local = obter_versao_local()
 
-    precisa_baixar = (
-
-        not os.path.exists(
-            LOCAL_MAIN
-        )
-
-        or
-
-        versao_local
-        !=
-        versao_online
-    )
+    precisa_baixar = not os.path.exists(LOCAL_MAIN) or versao_local != versao_online
 
     if precisa_baixar:
 
-        print(
-            f"⬇️ Atualizando para versão {versao_online}"
-        )
+        print(f"⬇️ Atualizando para versão {versao_online}")
 
         if atualizar_main():
 
-            salvar_versao_local(
-                versao_online
-            )
+            salvar_versao_local(versao_online)
 
             time.sleep(1)
 
