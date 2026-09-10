@@ -111,18 +111,8 @@ testar_ssl()
 logger.info("✅ Configuração SSL concluída com segurança.")
 
 # --- VERIFICAÇÃO DE SEGURANÇA VIA GITHUB ---
-VERSAO = "4.6.0"
+VERSAO = "4.6.1"
 REPO = "Kvsl11/Auto-Ficha-OPE"
-
-def exibir_erro_fatal(titulo, mensagem):
-    """Exibe uma janela de erro travada na tela e fecha o programa."""
-    root_temp = tk.Tk()
-    root_temp.withdraw()
-    root_temp.attributes("-topmost", True) # Garante que a mensagem apareça em cima de tudo
-    messagebox.showerror(titulo, mensagem)
-    root_temp.destroy()
-    os._exit(1)
-
 
 def exibir_erro_fatal(titulo, mensagem):
     """
