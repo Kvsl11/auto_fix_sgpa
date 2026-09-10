@@ -1,6 +1,7 @@
 import os
 import ssl
 import time
+import json
 import requests
 import subprocess
 
@@ -16,18 +17,15 @@ requests.packages.urllib3.disable_warnings()
 # =====================================
 
 REPO = "Kvsl11/auto_fix_sgpa"
-
 BASE_URL = f"https://raw.githubusercontent.com/{REPO}/main/"
-
 URL_CONFIG = BASE_URL + "config.json"
 URL_MAIN = BASE_URL + "main.py"
-
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-
 LOCAL_MAIN = os.path.join(APP_DIR, "main.py")
-LOCAL_VERSION = os.path.join(APP_DIR, "version_local.txt")
-LOCAL_CREDENCIAIS = os.path.join(APP_DIR, "credenciais.json")
-
+LOCAL_VERSION = os.path.join(
+    APP_DIR,
+    "version_local.txt"
+)
 PYTHON_PATH = os.path.join(
     APP_DIR,
     "Python313",
@@ -40,44 +38,45 @@ PYTHON_PATH = os.path.join(
 
 def obter_config():
     try:
+        headers = {
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache"
+        }
         r = requests.get(
             URL_CONFIG,
-            timeout=15,
+            timeout=10,
             verify=False,
-            headers={
-                "Cache-Control": "no-cache",
-                "Pragma": "no-cache"
-            }
+            headers=headers
         )
-
         r.raise_for_status()
-
         return r.json()
-
-    except Exception as e:
-        print(f"Erro ao ler config.json: {e}")
+    except Exception as erro:
+        print(
+            f"❌ Erro ao ler config.json: {erro}"
+        )
         return None
 
 
 def obter_versao_local():
-    try:
-        if os.path.exists(LOCAL_VERSION):
+    if os.path.exists(LOCAL_VERSION):
+        try:
             with open(
                 LOCAL_VERSION,
                 "r",
                 encoding="utf-8"
             ) as f:
-
                 return f.read().strip()
 
-    except:
-        pass
+        except Exception:
+            pass
 
     return "0.0.0"
 
 
 def salvar_versao_local(versao):
+
     try:
+
         with open(
             LOCAL_VERSION,
             "w",
@@ -86,22 +85,35 @@ def salvar_versao_local(versao):
 
             f.write(str(versao))
 
-    except Exception as e:
-        print(f"Erro ao salvar versão local: {e}")
+        print(
+            f"💾 Versão local salva: {versao}"
+        )
+
+    except Exception as erro:
+
+        print(
+            f"❌ Erro ao salvar versão local: {erro}"
+        )
 
 
 def atualizar_main():
 
     try:
 
+        print(
+            "⬇️ Baixando main.py..."
+        )
+
+        headers = {
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache"
+        }
+
         r = requests.get(
             URL_MAIN,
             timeout=30,
             verify=False,
-            headers={
-                "Cache-Control": "no-cache",
-                "Pragma": "no-cache"
-            }
+            headers=headers
         )
 
         r.raise_for_status()
@@ -109,53 +121,30 @@ def atualizar_main():
         with open(
             LOCAL_MAIN,
             "wb"
-        ) as f:
+        ) as arquivo:
 
-            f.write(r.content)
+            arquivo.write(r.content)
 
-        print("main.py atualizado.")
+        print(
+            "✅ main.py atualizado."
+        )
 
         return True
 
-    except Exception as e:
+    except Exception as erro:
 
-        print(f"Erro ao baixar main.py: {e}")
+        print(
+            f"❌ Falha ao atualizar main.py: {erro}"
+        )
 
         return False
 
 
-def apagar_arquivos_bloqueio():
-
-    arquivos = [
-        LOCAL_MAIN,
-        LOCAL_VERSION,
-        LOCAL_CREDENCIAIS
-    ]
-
-    for arquivo in arquivos:
-
-        try:
-
-            if os.path.exists(arquivo):
-
-                os.remove(arquivo)
-
-                print(
-                    f"Removido: {os.path.basename(arquivo)}"
-                )
-
-        except Exception as e:
-
-            print(
-                f"Erro ao remover {arquivo}: {e}"
-            )
-
-
 def iniciar_app():
 
-    if not os.path.exists(LOCAL_MAIN):
-        print("main.py inexistente.")
-        return
+    print(
+        "🚀 Iniciando sistema..."
+    )
 
     try:
 
@@ -172,10 +161,10 @@ def iniciar_app():
                 ["python", LOCAL_MAIN]
             )
 
-    except Exception as e:
+    except Exception as erro:
 
         print(
-            f"Erro ao iniciar aplicação: {e}"
+            f"❌ Erro ao iniciar app: {erro}"
         )
 
     finally:
@@ -188,13 +177,19 @@ def iniciar_app():
 
 def main():
 
+    print(
+        "🔍 Consultando config.json..."
+    )
+
     config = obter_config()
 
     if not config:
 
-        if os.path.exists(LOCAL_MAIN):
-            iniciar_app()
+        print(
+            "⚠️ Não foi possível obter config.json."
+        )
 
+        iniciar_app()
         return
 
     versao_online = str(
@@ -214,36 +209,43 @@ def main():
         ""
     )
 
-    # =====================================
-    # BLOQUEADO
-    # =====================================
+    print(
+        f"Versão online: {versao_online}"
+    )
 
     if not status:
 
-        print("Sistema bloqueado.")
+        print(
+            "🔴 Sistema bloqueado."
+        )
 
-        if mensagem:
-            print(mensagem)
+        print(mensagem)
 
-        apagar_arquivos_bloqueio()
+        time.sleep(3)
 
         return
 
-    # =====================================
-    # LIBERADO
-    # =====================================
-
     versao_local = obter_versao_local()
 
-    precisa_baixar = (
-        not os.path.exists(LOCAL_MAIN)
-        or versao_local != versao_online
+    print(
+        f"Versão local: {versao_local}"
     )
 
-    if precisa_baixar:
+    # CRIA version_local.txt automaticamente
+    if not os.path.exists(LOCAL_VERSION):
 
         print(
-            f"Baixando versão {versao_online}"
+            "📄 Criando version_local.txt..."
+        )
+
+        salvar_versao_local(
+            versao_online
+        )
+
+    if versao_online != versao_local:
+
+        print(
+            f"🟡 Atualização encontrada: {versao_online}"
         )
 
         if atualizar_main():
@@ -252,11 +254,17 @@ def main():
                 versao_online
             )
 
+            print(
+                "✅ Atualização concluída."
+            )
+
             time.sleep(1)
 
-        else:
+    else:
 
-            return
+        print(
+            "🟢 Sistema já atualizado."
+        )
 
     iniciar_app()
 
