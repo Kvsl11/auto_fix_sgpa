@@ -76,7 +76,7 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-6">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 text-white shadow-md shadow-brand-500/30">
             <Zap className="h-5 w-5" />
           </div>
@@ -85,7 +85,7 @@ export default function App() {
             <div className="text-xs text-slate-500 dark:text-slate-400">Versão {system?.version ?? "—"} · Cloud</div>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <span className="hidden text-xs text-slate-500 sm:inline">
+            <span className="text-xs text-slate-500">
               {system ? `${system.ativos}/${system.max_concurrent} execuções ativas` : ""}
             </span>
             <button className="btn-secondary h-9 w-9 p-0" onClick={() => setDark(!dark)} aria-label="Alternar tema">
@@ -100,7 +100,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
+      <main className="mx-auto max-w-7xl space-y-6 px-6 py-6">
         {system?.bloqueado && (
           <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
@@ -114,7 +114,7 @@ export default function App() {
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[22rem_1fr]">
+        <div className="grid gap-6 md:grid-cols-[18rem_1fr] xl:grid-cols-[22rem_1fr]">
           <aside className="space-y-6">
             <RunForm disabled={ativo || Boolean(system?.bloqueado)} submitting={submitting} onSubmit={start} />
 

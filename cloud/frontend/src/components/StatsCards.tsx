@@ -26,7 +26,7 @@ export function StatsCards({ stats, active }: { stats?: Stats; active: boolean }
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
       {items.map(({ label, value, icon: Icon }) => (
         <div key={label} className="card p-4">
           <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">

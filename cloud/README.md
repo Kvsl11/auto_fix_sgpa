@@ -1,6 +1,6 @@
 # Auto Ficha OPE — versão Cloud (Web)
 
-Versão web do app desktop `main.py`. A mesma automação Selenium agora roda **no servidor** e é controlada por um painel web moderno, que funciona em qualquer navegador (PC ou celular).
+Versão web do app desktop `main.py`. A mesma automação Selenium agora roda **no servidor** e é controlada por um painel web moderno, acessado pelo navegador do **computador ou tablet** (telas a partir de 768 px; celulares veem apenas um aviso).
 
 ```
 ┌────────────────────────┐   HTTPS / WebSocket   ┌──────────────────────────────────┐
@@ -16,7 +16,7 @@ Versão web do app desktop `main.py`. A mesma automação Selenium agora roda **
 
 | Desktop (`main.py`)                    | Cloud                                                        |
 |----------------------------------------|--------------------------------------------------------------|
-| Interface Tkinter/CustomTkinter        | Painel web React + Tailwind (tema claro/escuro, responsivo)  |
+| Interface Tkinter/CustomTkinter        | Painel web React + Tailwind (tema claro/escuro, PC e tablet) |
 | Chrome visível no Windows              | Chromium headless no servidor + **pré-visualização ao vivo** |
 | Mexer no navegador com o mouse         | **Modo interativo**: clicar/digitar na tela remota pelo painel |
 | Variáveis globais (1 execução)         | Classe `AutomacaoFicha` por execução (multiusuário)          |
