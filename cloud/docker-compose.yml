@@ -1,0 +1,11 @@
+services:
+  auto-ficha:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      APP_PASSWORD: ${APP_PASSWORD:-troque-esta-senha}
+      SECRET_KEY: ${SECRET_KEY:-gere-uma-chave-aleatoria}
+      MAX_CONCURRENT_JOBS: "2"
+    shm_size: "1gb"   # Chromium precisa de memória compartilhada
+    restart: unless-stopped

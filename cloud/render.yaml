@@ -1,0 +1,16 @@
+# Deploy em 1 clique no Render (https://render.com) — Blueprint
+services:
+  - type: web
+    name: auto-ficha-ope
+    runtime: docker
+    rootDir: cloud
+    dockerfilePath: ./Dockerfile
+    plan: standard        # Chromium precisa de >= 1 GB de RAM
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_PASSWORD
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: MAX_CONCURRENT_JOBS
+        value: "2"
